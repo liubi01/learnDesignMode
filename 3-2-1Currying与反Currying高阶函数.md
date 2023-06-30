@@ -2,38 +2,6 @@
 1.  函数可以作为参数被传递；
 2.  函数可以作为返回值输出。
 
-## 实现AOP
-
-::: 跟业务逻辑无关的功能通常包括日志统计、安全控制、异常处理等。把这些功能抽离出来之后，
-再通过“动态织入”的方式掺入业务逻辑模块中
-
-```javascript
-  Function.prototype.before = function(beforefn) {
-      var __self = this; // 保存原函数的引用
-      return function() { // 返回包含了原函数和新函数的"代理"函数
-          beforefn.apply(this, arguments); // 执行新函数，修正 this 
-          return __self.apply(this, arguments); // 执行原函数
-      }
-  };
-  Function.prototype.after = function(afterfn) {
-      var __self = this;
-      return function() {
-          var ret = __self.apply(this, arguments);
-          afterfn.apply(this, arguments);
-          return ret;
-      }
-  };
-  var func = function() {
-      console.log(2);
-  };
-  func = func.before(function() {
-      console.log(1);
-  }).after(function() {
-      console.log(3);
-  });
-  func();
-```
-
 ## 其他高阶函数应用
 
 ### 函数柯里化
@@ -70,6 +38,34 @@
   cost(300); // 未真正求值
   alert(cost()); // 求值并输出：600
 ```
+
 ### uncurrying
 
 ::: 泛化 this 的过程提取出来
+
+```javascript
+  Function.prototype.uncurrying = function() {
+      var self = this; // self 此时是 Array.prototype.push 
+      return function() {
+          var obj = Array.prototype.shift.call(arguments);
+          // obj 是{ 
+          // "length": 1, 
+          // "0": 1 
+          // } 
+          // arguments 对象的第一个元素被截去，剩下[2] 
+          return self.apply(obj, arguments);
+          // 相当于 Array.prototype.push.apply( obj, 2 ) 
+      };
+  };
+  // 使用
+  var push = Array.prototype.push.uncurrying();
+  var obj = {
+      "length": 1,
+      "0": 1
+  };
+  push(obj, 2);
+  console.log(obj); // 输出：{0: 1, 1: 2, length: 2}
+
+  // 另一种反柯里化实现方案
+  
+  ```
