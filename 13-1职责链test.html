@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+</html>
+<script>
+var order500 = function(orderType, pay, stock) {
+    if (orderType === 1 && pay === true) {
+        console.log('500 元定金预购，得到 100 优惠券');
+    } else {
+        return 'nextSuccessor'; // 我不知道下一个节点是谁，反正把请求往后面传递
+    }
+};
+var order200 = function(orderType, pay, stock) {
+    if (orderType === 2 && pay === true) {
+        console.log('200 元定金预购，得到 50 优惠券');
+    } else {
+        return 'nextSuccessor'; // 我不知道下一个节点是谁，反正把请求往后面传递
+    }
+};
+var orderNormal = function(orderType, pay, stock) {
+    if (stock > 0) {
+        console.log('普通购买，无优惠券');
+    } else {
+        console.log('手机库存不足');
+    }
+};
+
+Function.prototype.after = function( fn ){ 
+    var self = this; 
+    return function(){
+        var ret = self.apply( this, arguments ); 
+            if ( ret === 'nextSuccessor' ){ // 标识不符合条件nextOne
+               return fn.apply( this, arguments ); 
+            }
+        return ret; 
+    } 
+}; 
+Function.prototype.next = function(){
+}; 
+var order = order500.after( order200 ).after( orderNormal ); 
+order( 1, true, 500 ); // 输出：500 元定金预购，得到 100 优惠券
+order( 2, true, 500 ); // 输出：200 元定金预购，得到 50 优惠券
+order( 1, false, 500 ); // 输出：普通购买，无优惠券
+var fn1 = function() {
+    console.log(1);
+    return 'nextSuccessor'; // 不符合条件 nextSuccessor 下一个节点
+};
+var fn2 = function() {
+    // var self = this;
+    setTimeout(function() {
+        console.log(2);
+        fn2.next();
+        return 'nextSuccessor';
+    }, 1000);
+};
+var fn3 = function() {
+    console.log(3);
+    return 'nextSuccessor'; // 不符合条件 nextSuccessor 下一个节点
+};
+var fn4 = function() {
+    console.log(4);
+};
+var fnChain = fn1.after(fn2).after(fn3).after(fn4);
+console.log(fnChain);
+// fn2.after(fn3)
+// fn3.after(fn4);
+fnChain();
+// order( 1, true, 500 ); // 输出：500 元定金预购，得到 100 优惠券
+// order( 2, true, 500 ); // 输出：200 元定金预购，得到 50 优惠券
+// order( 1, false, 500 ); // 输出：普通购买，无优惠券
+</script>
